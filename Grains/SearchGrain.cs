@@ -30,7 +30,7 @@ namespace Grains
             await RegisterOrUpdateReminder(ReminderName, TimeSpan.Zero, TimeSpan.FromMinutes(1));
             await WriteStateAsync();
 
-            await RunAsync();
+            await RunAsync(TimeSpan.Zero);
 
             logger.LogInformation($"### Search 'RegisterOrUpdateReminder' {DateTime.Now} handled");
         }
@@ -56,7 +56,7 @@ namespace Grains
             logger.LogInformation($"### Search 'ReceiveReminder' {status.CurrentTickTime} handled");
         }
 
-        protected async Task RunAsync()
+        protected async Task RunAsync(TimeSpan dueTime)
         {
             // UpdateSuggestionStates
 
@@ -78,16 +78,16 @@ namespace Grains
             RegisterTimer(stateObj =>
             {
                 logger.LogInformation($"### Search 'Timer' end waiting {DateTime.Now} handled");
-                return RunAsync();
+                return RunAsync(TimeSpan.FromSeconds(15));
 
-            }, null, TimeSpan.FromSeconds(15), TimeSpan.FromMilliseconds(-1));
+            }, null, dueTime, TimeSpan.FromMilliseconds(-1));
         }
 
         public override async Task OnActivateAsync()
         {
             if (State.IsStarted)
             {
-                await RunAsync();
+                await RunAsync(TimeSpan.Zero);
             }
 
             logger.LogInformation($"### Search {this.GetPrimaryKey()} activated");
